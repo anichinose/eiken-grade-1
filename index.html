@@ -5,35 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>英検１級語彙問題</title>
   <style>
-    /* Page should fit in one screen */
     html, body { height: 100%; }
     body {
-      font-family: Arial, sans-serif; margin:0; padding:0; overflow:hidden; /* no page scroll */
+      font-family: Arial, sans-serif; margin:0; padding:0; overflow:hidden;
       display:flex; justify-content:center; align-items:flex-start; min-height:100vh;
-      background:url('https://images.unsplash.com/photo-1508264165352-258859e62245?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80') no-repeat center/cover fixed; color:#fff;
+      background:url('https://images.unsplash.com/photo-1508264165352-258859e62245?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80') no-repeat center/cover fixed;
+      color:#fff;
     }
     .quiz-container {
-      margin:1.2vh 0; background:rgba(0,0,0,.75); border-radius:12px; padding:14px 18px;
+      margin:1.2vh 0; background:rgba(0,0,0,.78); border-radius:12px; padding:14px 18px;
       width:min(920px,96vw); height:96vh; box-shadow:0 4px 12px rgba(0,0,0,.5);
-      display:flex; flex-direction:column; box-sizing:border-box;
+      display:flex; flex-direction:column; box-sizing:border-box; position:relative;
     }
 
-    /* Header */
     .header { position:relative; display:flex; justify-content:flex-end; align-items:center; min-height:40px; margin-bottom:6px; }
     .header h1 { position:absolute; left:0; right:0; margin:0; text-align:center; font-size:22px; color:#facc15; letter-spacing:.03em; pointer-events:none; }
-    #next-btn, #restart-btn { padding:6px 10px; font-size:13px; border-radius:6px; border:none; background:#3b82f6; color:#fff; cursor:pointer; }
-    #next-btn { visibility:hidden; }
+    /* Bigger Next button */
+    #next-btn { padding:10px 16px; font-size:15px; border-radius:8px; border:none; background:#3b82f6; color:#fff; cursor:pointer; visibility:hidden; }
 
     .muted{ color:#cbd5e1; font-size:13px; text-align:center; margin:2px 0 6px; }
 
-    /* Quiz body layout to avoid scrolling */
     #quiz { flex:1; display:flex; flex-direction:column; gap:6px; }
     .question { font-size:16px; line-height:1.45; font-weight:bold; margin:4px 0 0; }
 
-    /* Reserve space so choices never shift when JP appears */
     .sentence-ja { min-height:64px; visibility:hidden; margin:2px 0 6px; color:#e2e8f0; font-size:14px; }
 
-    /* Two-column choices to shorten height */
     .choices { list-style:none; padding:0; margin:4px 0 0; display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px 12px; }
     .choices li { margin:0; }
 
@@ -41,15 +37,19 @@
     .icon-btn { width:34px; height:34px; border-radius:8px; border:1px solid rgba(255,255,255,.2); background:#0f172a; color:#e5e7eb; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; }
     .icon-btn:hover{ background:#1f2937; }
 
-    .choice-btn { width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; background:#1f2937; color:#fff; cursor:pointer; font-size:15px; text-align:left; }
+    .choice-btn { width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; background:#1f2937; color:#fff; cursor:pointer; font-size:15px; text-align:left; min-height:44px; }
     .choice-btn:hover { background:#374151; }
     .correct{ background:#15803d !important; border-color:#22c55e !important; }
     .wrong  { background:#b91c1c !important; border-color:#ef4444 !important; }
     .ja { display:inline-block; margin-left:6px; color:#cbd5e1; font-size:13px; }
 
     .result{ font-size:15px; margin-top:6px; text-align:center; }
-    .button-bar{ display:flex; justify-content:center; margin-top:6px; gap:10px; }
-    #restart-btn{ display:none; }
+
+    .finish-wrap{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:20px; text-align:center; }
+    #final-score{ font-size:18px; font-weight:bold; }
+    #final-msg{ font-size:15px; color:#e2e8f0; max-width:680px; }
+    #yt-btn{ padding:10px 16px; font-size:14px; border-radius:8px; border:none; background:#ff0000; color:#fff; cursor:pointer; display:none; }
+    #restart-btn{ padding:10px 16px; font-size:14px; border-radius:8px; border:none; background:#3b82f6; color:#fff; cursor:pointer; display:none; }
 
     @media (max-width: 740px){
       .header h1{ font-size:20px; }
@@ -70,14 +70,22 @@
     <div class="muted" id="progress">Question 1 of 22</div>
     <div id="quiz"></div>
     <div class="result" id="result"></div>
-    <div class="button-bar"><button id="restart-btn">Try Again</button></div>
+
+    <div class="finish-wrap" id="finish" style="display:none">
+      <div id="final-score"></div>
+      <div id="final-msg"></div>
+      <a id="yt-link" href="https://www.youtube.com/@eigophile" target="_blank" rel="noopener noreferrer">
+        <button id="yt-btn">My YouTube Channel</button>
+      </a>
+      <button id="restart-btn">Play Again</button>
+    </div>
   </div>
 
   <script>
-    // Use non‑breaking spaces so the blank shows wide, not ( )
-    const BLANK_HTML = '(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)';
+    // Wide blank that won't collapse to ( )
+    const BLANK_HTML = '(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)';
 
-    // Full 22-question dataset (fixed order)
+    // 22 questions (fixed order), choices random per question
     const questions = [
       {q: `The wealthy industrialist is admired for his success, but he is best remembered for his ${BLANK_HTML}. He donated millions to hospitals and funded countless scholarships.`, a:["altruism","obstinacy","vanity","syncopation"], correct:0, jaChoices:["利他主義","強情","虚栄心","シンコペーション"], jaSentence:"その裕福な実業家は成功で称賛されているが、最も記憶されているのはその利他主義である。彼は病院に何百万ドルも寄付し、無数の奨学金に資金提供した。"},
       {q: `The tourists were ${BLANK_HTML} by the intricate temple carvings. They stood in silence, studying every detail in awe.`, a:["enthralled","ostracized","shunned","usurped"], correct:0, jaChoices:["魅了された","追放された","避けられた","奪取された"], jaSentence:"観光客は精巧な寺院の彫刻に魅了された。彼らは沈黙のまま立ち、あらゆる細部を畏敬の念で見つめた。"},
@@ -103,22 +111,27 @@
       {q: `Tourists often feel ${BLANK_HTML} when they realize they paid double the normal price for souvenirs that locals buy cheaply.`, a:["ripped off","dragged out","rolled back","jotted down"], correct:0, jaChoices:["ぼったくられた","引き延ばされた","元に戻された","書き留めた"], jaSentence:"観光客は、地元の人が安く買う土産物を自分たちは通常の2倍の値段で買わされたと気づくと、しばしばぼったくられたと感じる。"}
     ];
 
-    // State & elements
-    let currentQuestion = 0; let score = 0;
+    // State & DOM
+    let currentQuestion = 0, score = 0;
     const quizContainer = document.getElementById('quiz');
     const resultContainer = document.getElementById('result');
     const nextBtn = document.getElementById('next-btn');
-    const restartBtn = document.getElementById('restart-btn');
     const progress = document.getElementById('progress');
+    const finish = document.getElementById('finish');
+    const finalScore = document.getElementById('final-score');
+    const finalMsg = document.getElementById('final-msg');
+    const restartBtn = document.getElementById('restart-btn');
+    const ytBtn = document.getElementById('yt-btn');
 
-    // Sounds
+    // Sounds (gentle correct chime, elegant wrong tone)
     let audioCtx; function getCtx(){ return audioCtx || (audioCtx = new (window.AudioContext || window.webkitAudioContext)()); }
-    function beep(freq,duration=0.15,gain=0.1,type='sine'){ const ctx=getCtx(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type=type; o.frequency.value=freq; g.gain.value=gain; o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+duration); }
-    function playCorrect(){ beep(523.25,0.12); setTimeout(()=>beep(659.25,0.12),120); setTimeout(()=>beep(783.99,0.18),240); }
-    function playWrong(){ const ctx=getCtx(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='triangle'; o.frequency.setValueAtTime(220,ctx.currentTime); o.frequency.linearRampToValueAtTime(160,ctx.currentTime+0.25); g.gain.setValueAtTime(0.15,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.3); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.35); }
+    function beep(freq,duration=0.14,gain=0.08,type='sine'){ const ctx=getCtx(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type=type; o.frequency.value=freq; g.gain.value=0.0001; g.connect(ctx.destination); o.connect(g); o.start(); g.gain.exponentialRampToValueAtTime(gain, ctx.currentTime+0.01); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+duration); o.stop(ctx.currentTime+duration+0.02); }
+    function playCorrect(){ beep(523.25,0.12); setTimeout(()=>beep(659.25,0.12),110); setTimeout(()=>beep(783.99,0.18),220); }
+    function playWrong(){ const ctx=getCtx(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='triangle'; o.frequency.setValueAtTime(240,ctx.currentTime); o.frequency.linearRampToValueAtTime(170,ctx.currentTime+0.28); g.gain.setValueAtTime(0.15,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.3); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.34); }
 
-    // TTS for word pronunciation
+    // TTS for pronunciation
     function speak(text){ if(!('speechSynthesis' in window)) return; window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); const v=window.speechSynthesis.getVoices(); const en=v.find(x=>/^en(-|_|$)/i.test(x.lang))||v[0]; if(en) u.voice=en; u.rate=0.95; u.pitch=1; window.speechSynthesis.speak(u); }
+    if ('speechSynthesis' in window) { window.speechSynthesis.getVoices(); }
 
     function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } }
 
@@ -128,56 +141,83 @@
       progress.textContent = `Question ${currentQuestion+1} of ${questions.length}`;
 
       // Question + reserved JP slot
-      const qHtml = `<div class='question'>${q.q}</div><div class='sentence-ja' id='ja-slot'></div>`;
-      quizContainer.innerHTML = qHtml;
+      quizContainer.innerHTML = `<div class='question'>${q.q}</div><div class='sentence-ja' id='ja-slot'></div>`;
 
-      // Choices (2-column grid)
+      // Build shuffled choices preserving correctness
       const choices = q.a.map((text, idx) => ({ text, ja: q.jaChoices[idx], ok: idx === q.correct }));
       shuffle(choices);
+
       const ul = document.createElement('ul'); ul.className = 'choices';
       choices.forEach((c, i) => {
         const li = document.createElement('li');
         const row = document.createElement('div'); row.className = 'choice-row';
-        const icon = document.createElement('button'); icon.className = 'icon-btn'; icon.type = 'button'; icon.innerHTML = '&#128264;'; icon.addEventListener('click', ev => { ev.stopPropagation(); speak(c.text); });
-        const btn = document.createElement('button'); btn.className = 'choice-btn'; btn.type = 'button'; btn.textContent = `${i+1}. ${c.text}`; btn.onclick = () => select(btn, c.ok, choices);
+
+        const icon = document.createElement('button');
+        icon.className = 'icon-btn'; icon.type = 'button'; icon.innerHTML = '&#128264;';
+        icon.addEventListener('click', ev => { ev.stopPropagation(); speak(c.text); });
+
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn'; btn.type = 'button';
+        btn.textContent = `${i+1}. ${c.text}`;
+        btn.onclick = () => select(btn, c.ok, choices);
+
         row.appendChild(icon); row.appendChild(btn); li.appendChild(row); ul.appendChild(li);
       });
       quizContainer.appendChild(ul);
+
+      // Reset UI bits
+      nextBtn.style.visibility = 'hidden';
+      finish.style.display = 'none';
+      restartBtn.style.display = 'none';
+      ytBtn.style.display = 'none';
     }
 
     function select(btn, ok, choices){
       const buttons = document.querySelectorAll('.choice-btn');
       buttons.forEach(b => b.disabled = true);
+
       if(ok){ btn.classList.add('correct'); score++; playCorrect(); }
       else { btn.classList.add('wrong'); const right = [...buttons].find((b,i)=>choices[i].ok); if(right) right.classList.add('correct'); playWrong(); }
 
-      // JA glosses
-      buttons.forEach((b,i)=>{ if(!b.querySelector('.ja')){ const s=document.createElement('span'); s.className='ja'; s.textContent = ` — ${choices[i].ja}`; b.appendChild(s);} });
+      // Show JA glosses for all options (no dash prefix)
+      buttons.forEach((b,i)=>{ if(!b.querySelector('.ja')){ const s=document.createElement('span'); s.className='ja'; s.textContent = ` ${choices[i].ja}`; b.appendChild(s);} });
 
-      // Show translation without shifting
+      // Reveal sentence translation in reserved slot
       const slot = document.getElementById('ja-slot');
       slot.style.visibility = 'visible';
-      slot.innerHTML = questions[currentQuestion].jaSentence;
+      slot.textContent = questions[currentQuestion].jaSentence;
 
       nextBtn.style.visibility = 'visible';
     }
 
     nextBtn.addEventListener('click', () => {
       currentQuestion++;
-      if(currentQuestion < questions.length){ nextBtn.style.visibility = 'hidden'; render(); }
+      if(currentQuestion < questions.length){ render(); }
       else {
+        // End screen centered
         quizContainer.innerHTML = '';
         progress.textContent = 'Finished';
-        resultContainer.textContent = `You scored ${score} out of ${questions.length}!`;
-        nextBtn.style.visibility = 'hidden';
+        finalScore.textContent = `You scored ${score} out of ${questions.length}!`;
+        finalMsg.textContent = 'Thanks for playing, and please subscribe to my YouTube channel for future updates!';
+        finish.style.display = 'flex';
+        ytBtn.style.display = 'inline-block';
         restartBtn.style.display = 'inline-block';
+        nextBtn.style.visibility = 'hidden';
       }
     });
 
     restartBtn.addEventListener('click', () => {
-      currentQuestion = 0; score = 0; restartBtn.style.display = 'none'; nextBtn.style.visibility = 'hidden'; resultContainer.textContent = ''; progress.textContent = `Question 1 of ${questions.length}`; render();
+      currentQuestion = 0; score = 0;
+      finish.style.display = 'none';
+      restartBtn.style.display = 'none';
+      ytBtn.style.display = 'none';
+      nextBtn.style.visibility = 'hidden';
+      resultContainer.textContent = '';
+      progress.textContent = `Question 1 of ${questions.length}`;
+      render();
     });
 
+    // Start
     if(Array.isArray(questions) && questions.length === 22){ render(); }
     else { document.getElementById('quiz').textContent = 'Error: 問題データの読み込みに失敗しました。'; }
   </script>
