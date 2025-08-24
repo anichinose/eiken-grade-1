@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>英検１級語彙問題</title>
   <style>
-    /* Full-screen app with no page scroll */
     html, body { height: 100%; }
     body {
       font-family: Arial, sans-serif; margin:0; padding:0; overflow:hidden;
@@ -14,84 +13,58 @@
       color:#fff;
     }
 
-    /* Edge-to-edge container */
     .quiz-container{
       width: 100vw;
       height: calc(var(--vh, 1vh) * 100);
       margin: 0;
       background: rgba(0,0,0,.78);
-      border-radius: 0;
-      box-shadow: none;
-
       padding: clamp(12px, 2.2vw, 20px);
-      padding-bottom: max(env(safe-area-inset-bottom), clamp(12px, 2.2vw, 20px));
-      padding-top:    max(env(safe-area-inset-top),    clamp(12px, 2.2vw, 20px));
-      padding-left:   max(env(safe-area-inset-left),   clamp(12px, 2.2vw, 20px));
-      padding-right:  max(env(safe-area-inset-right),  clamp(12px, 2.2vw, 20px));
-
       display:flex; flex-direction:column; box-sizing:border-box; position:relative;
     }
 
-    /* Header: title centered */
-    .header { position:relative; display:flex; justify-content:center; align-items:center; min-height:44px; margin-bottom:8px; }
-    .header h1 { margin:0; text-align:center; font-size:24px; color:#facc15; letter-spacing:.03em; }
+    .header { text-align:center; margin-bottom:8px; }
+    .header h1 { margin:0; font-size:24px; color:#facc15; }
 
     .muted{ color:#cbd5e1; font-size:14px; text-align:center; margin:2px 0 8px; }
-
-    /* Main area */
     #quiz { flex:1; display:flex; flex-direction:column; gap:10px; }
-    .question { font-size:18px; line-height:1.5; font-weight:bold; margin:4px 0 0; }
+    .question { font-size:18px; line-height:1.6; font-weight:bold; margin:4px 0 0; white-space:normal; }
 
-    /* Keep JP translation space reserved */
     .sentence-ja { min-height:64px; visibility:hidden; margin:4px 0 8px; color:#e2e8f0; font-size:15px; }
 
-    /* Choices */
     .choices { list-style:none; padding:0; margin:4px 0 0; display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px 14px; }
-    .choices li { margin:0; }
-
     .choice-row { display:grid; grid-template-columns:38px 1fr; gap:10px; align-items:center; }
     .icon-btn { width:38px; height:38px; border-radius:8px; border:1px solid rgba(255,255,255,.2); background:#0f172a; color:#e5e7eb; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; }
-    .icon-btn:hover{ background:#1f2937; }
-
     .choice-btn { width:100%; padding:12px; border:1px solid #374151; border-radius:8px; background:#1f2937; color:#fff; cursor:pointer; font-size:16px; text-align:left; min-height:48px; }
     .choice-btn:hover { background:#374151; }
     .correct{ background:#15803d !important; border-color:#22c55e !important; }
     .wrong  { background:#b91c1c !important; border-color:#ef4444 !important; }
     .ja { display:inline-block; margin-left:8px; color:#cbd5e1; font-size:14px; }
 
-    /* Actions area: Next button centered under choices */
     .actions { display:flex; justify-content:center; align-items:center; margin-top:8px; min-height:52px; }
     #next-btn { padding:12px 18px; font-size:16px; border-radius:10px; border:none; background:#3b82f6; color:#fff; cursor:pointer; visibility:hidden; }
 
-    .result{ font-size:15px; margin-top:6px; text-align:center; }
-
-    /* End screen */
     .finish-wrap{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:20px; text-align:center; }
     #final-score{ font-size:20px; font-weight:bold; }
+    #final-time{ font-size:16px; color:#facc15; }
     #final-msg{ font-size:16px; color:#e2e8f0; max-width:780px; }
     #yt-btn{ padding:12px 18px; font-size:15px; border-radius:8px; border:none; background:#ff0000; color:#fff; cursor:pointer; display:none; }
     #restart-btn{ padding:12px 18px; font-size:15px; border-radius:8px; border:none; background:#3b82f6; color:#fff; cursor:pointer; display:none; }
 
-    /* Larger type on desktop/laptop */
     @media (min-width: 1024px){
-      .header h1{ font-size:28px; }
-      .muted{ font-size:16px; }
       .question{ font-size:22px; }
       .sentence-ja{ font-size:18px; min-height:72px; }
       .icon-btn{ width:42px; height:42px; font-size:20px; }
       .choice-btn{ font-size:18px; padding:14px; min-height:54px; }
       #next-btn{ font-size:18px; padding:14px 22px; }
     }
-
-    /* Small phones: stack choices */
     @media (max-width: 560px){
       .choices{ grid-template-columns: 1fr; }
       .question{ font-size:16px; }
     }
   </style>
 
-  <!-- Mobile 100vh fix (accounts for browser bars) -->
   <script>
+    // Mobile 100vh fix
     function setVH(){ document.documentElement.style.setProperty('--vh', (window.innerHeight*0.01)+'px'); }
     window.addEventListener('resize', setVH);
     window.addEventListener('orientationchange', setVH);
@@ -100,27 +73,22 @@
 </head>
 <body>
   <div class="quiz-container">
-    <div class="header">
-      <h1>英検１級語彙問題</h1>
-    </div>
-
+    <div class="header"><h1>英検１級語彙問題</h1></div>
     <div class="muted" id="progress">Question 1 of 22</div>
     <div id="quiz"></div>
     <div class="actions"><button id="next-btn">Next</button></div>
-    <div class="result" id="result"></div>
 
-    <!-- End screen (centered) -->
     <div class="finish-wrap" id="finish" style="display:none">
       <div id="final-score"></div>
-      <div id="final-msg"></div>
-      <a id="yt-link" href="https://www.youtube.com/@eigophile" target="_blank" rel="noopener noreferrer">
-        <button id="yt-btn">My YouTube Channel</button>
-      </a>
+      <div id="final-time"></div>
+      <div id="final-msg">Thanks for playing, and please subscribe to my YouTube channel for future updates!</div>
+      <a href="https://www.youtube.com/@eigophile" target="_blank"><button id="yt-btn">My YouTube Channel</button></a>
       <button id="restart-btn">Play Again</button>
     </div>
   </div>
 
   <script>
+    // ===== Data =====
     const BLANK_HTML = '(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)';
     const questions = [
       {q: `The wealthy industrialist is admired for his success, but he is best remembered for his ${BLANK_HTML}. He donated millions to hospitals and funded countless scholarships.`, a:["altruism","obstinacy","vanity","syncopation"], correct:0, jaChoices:["利他主義","強情","虚栄心","シンコペーション"], jaSentence:"その裕福な実業家は成功で称賛されているが、最も記憶されているのはその利他主義である。彼は病院に何百万ドルも寄付し、無数の奨学金に資金提供した。"},
@@ -143,21 +111,22 @@
       {q: `The cottage had ${BLANK_HTML} decades of storms without collapsing. Its solid stone walls were a source of local pride.`, a:["weathered","pandered","bartered","bolstered"], correct:0, jaChoices:["耐えてきた","迎合した","物々交換した","強化した（支えた）"], jaSentence:"その山小屋は数十年にわたる嵐に耐えてきた。頑丈な石壁は地域の誇りだった。"},
       {q: `After weeks of illness, Maria finally ${BLANK_HTML} her fever and regained enough strength to return to work.`, a:["shook off","clammed up","thumbed through","squeezed in"], correct:0, jaChoices:["振り払った","黙り込んだ","（本を）ぱらぱらめくった","（予定に）押し込んだ"], jaSentence:"何週間も病気が続いた後、マリアはついに熱を振り払い、仕事に戻れるほど体力を取り戻した。"},
       {q: `The author originally submitted a rough outline of the novel, but the editor asked him to expand it. After several months, he had ${BLANK_HTML} the plot and characters into a rich, detailed story.`, a:["fleshed out","trimmed down","stumbled on","rallied around"], correct:0, jaChoices:["肉付けした（具体化した）","削減した","偶然見つけた","結集して支援した"], jaSentence:"著者は当初、粗い構成だけを提出したが、編集者は拡充を求めた。数か月後、彼は筋立てと登場人物に肉付けをして、豊かで詳細な物語に仕上げた。"},
-      {q: `A: Weren't you supposed to give the presentation to the board today? B: Yes, but when I saw all those executives staring at me, I ${BLANK_HTML} and told them I was sick.`, a:["copped out","drifted off","glossed over","reined in"], correct:0, jaChoices:["怖気づいて逃げた（責任回避した）","居眠りした／意識がそれた","うやむやにした","抑え込んだ"], jaSentence:"A: 今日は取締役会でプレゼンのはずじゃなかった？ B: うん。でも重役たちがこっちを見つめているのを見たら怖気づいて、病気だと言ってしまった。"},
+      {q: `A: Weren't you supposed to give the presentation to the board today?<br>B: Yes, but when I saw all those executives staring at me, I ${BLANK_HTML} and told them I was sick.`, a:["copped out","drifted off","glossed over","reined in"], correct:0, jaChoices:["怖気づいて逃げた（責任回避した）","居眠りした／意識がそれた","うやむやにした","抑え込んだ"], jaSentence:"A: 今日は取締役会でプレゼンのはずじゃなかった？ B: うん。でも重役たちがこっちを見つめているのを見たら怖気づいて、病気だと言ってしまった。"},
       {q: `Tourists often feel ${BLANK_HTML} when they realize they paid double the normal price for souvenirs that locals buy cheaply.`, a:["ripped off","dragged out","rolled back","jotted down"], correct:0, jaChoices:["ぼったくられた","引き延ばされた","元に戻された","書き留めた"], jaSentence:"観光客は、地元の人が安く買う土産物を自分たちは通常の2倍の値段で買わされたと気づくと、しばしばぼったくられたと感じる。"}
     ];
 
-    let currentQuestion = 0, score = 0;
-    const quizContainer = document.getElementById('quiz');
-    const resultContainer = document.getElementById('result');
-    const nextBtn = document.getElementById('next-btn');
-    const progress = document.getElementById('progress');
-    const finish = document.getElementById('finish');
-    const finalScore = document.getElementById('final-score');
-    const finalMsg = document.getElementById('final-msg');
-    const restartBtn = document.getElementById('restart-btn');
-    const ytBtn = document.getElementById('yt-btn');
+    // ===== State & DOM =====
+    let currentQuestion=0, score=0, startTime=0;
+    const quizContainer=document.getElementById('quiz');
+    const nextBtn=document.getElementById('next-btn');
+    const progress=document.getElementById('progress');
+    const finish=document.getElementById('finish');
+    const finalScore=document.getElementById('final-score');
+    const finalTime=document.getElementById('final-time');
+    const restartBtn=document.getElementById('restart-btn');
+    const ytBtn=document.getElementById('yt-btn');
 
+    // ===== Audio (correct / wrong) =====
     let audioCtx;
     function getCtx(){ return audioCtx || (audioCtx = new (window.AudioContext || window.webkitAudioContext)()); }
     function beep(freq,duration=0.14,gain=0.08,type='sine'){
@@ -178,62 +147,89 @@
       o.start(); o.stop(ctx.currentTime+0.34);
     }
 
-    function speak(text){ if(!('speechSynthesis' in window)) return; window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); const v=window.speechSynthesis.getVoices(); const en=v.find(x=>/^en(-|_|$)/i.test(x.lang))||v[0]; if(en) u.voice=en; u.rate=0.95; u.pitch=1; window.speechSynthesis.speak(u); }
+    // ===== TTS Pronunciation =====
+    function speak(text){
+      if(!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      const v=window.speechSynthesis.getVoices();
+      const en=v.find(x=>/^en(-|_|$)/i.test(x.lang))||v[0];
+      if(en) u.voice=en; u.rate=0.95; u.pitch=1;
+      window.speechSynthesis.speak(u);
+    }
     if ('speechSynthesis' in window) { window.speechSynthesis.getVoices(); }
 
+    // ===== Utils =====
     function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } }
+    function formatTime(ms){ const s=Math.floor(ms/1000); const m=Math.floor(s/60); const r=s%60; return `${m}:${String(r).padStart(2,'0')}`; }
 
+    // ===== Render =====
     function render(){
-      const q = questions[currentQuestion];
-      resultContainer.textContent = '';
-      progress.textContent = `Question ${currentQuestion+1} of ${questions.length}`;
-      quizContainer.innerHTML = `<div class='question'>${q.q}</div><div class='sentence-ja' id='ja-slot'></div>`;
-      const choices = q.a.map((text, idx) => ({ text, ja: q.jaChoices[idx], ok: idx === q.correct }));
+      if(currentQuestion===0 && !startTime){ startTime = Date.now(); }
+      const q=questions[currentQuestion];
+      progress.textContent=`Question ${currentQuestion+1} of ${questions.length}`;
+      quizContainer.innerHTML=`<div class='question'>${q.q}</div><div class='sentence-ja' id='ja-slot'></div>`;
+
+      const choices=q.a.map((text,idx)=>({text,ja:q.jaChoices[idx],ok:idx===q.correct}));
       shuffle(choices);
-      const ul = document.createElement('ul'); ul.className = 'choices';
-      choices.forEach((c, i) => {
-        const li = document.createElement('li');
-        const row = document.createElement('div'); row.className = 'choice-row';
-        const icon = document.createElement('button'); icon.className = 'icon-btn'; icon.type = 'button'; icon.innerHTML = '&#128264;'; icon.addEventListener('click', ev => { ev.stopPropagation(); speak(c.text); });
-        const btn = document.createElement('button'); btn.className = 'choice-btn'; btn.type = 'button'; btn.textContent = `${i+1}. ${c.text}`; btn.onclick = () => select(btn, c.ok, choices);
+      const ul=document.createElement('ul'); ul.className='choices';
+      choices.forEach((c,i)=>{
+        const li=document.createElement('li');
+        const row=document.createElement('div'); row.className='choice-row';
+        const icon=document.createElement('button'); icon.className='icon-btn'; icon.type='button'; icon.innerHTML='&#128264;';
+        icon.addEventListener('click', ev => { ev.stopPropagation(); speak(c.text); });
+        const btn=document.createElement('button'); btn.className='choice-btn'; btn.type='button'; btn.textContent=`${i+1}. ${c.text}`;
+        btn.onclick=()=>select(btn,c.ok,choices);
         row.appendChild(icon); row.appendChild(btn); li.appendChild(row); ul.appendChild(li);
       });
       quizContainer.appendChild(ul);
-      nextBtn.style.visibility = 'hidden'; finish.style.display = 'none'; restartBtn.style.display = 'none'; ytBtn.style.display = 'none';
+      nextBtn.style.visibility='hidden';
+      finish.style.display='none'; restartBtn.style.display='none'; ytBtn.style.display='none';
     }
 
-    function select(btn, ok, choices){
-      const buttons = document.querySelectorAll('.choice-btn'); buttons.forEach(b => b.disabled = true);
-      if(ok){ btn.classList.add('correct'); score++; playCorrect(); }
-      else { btn.classList.add('wrong'); const right = [...buttons].find((b,i)=>choices[i].ok); if(right) right.classList.add('correct'); playWrong(); }
-      buttons.forEach((b,i)=>{ if(!b.querySelector('.ja')){ const s=document.createElement('span'); s.className='ja'; s.textContent = ` ${choices[i].ja}`; b.appendChild(s); }});
-      const slot = document.getElementById('ja-slot'); slot.style.visibility = 'visible'; slot.textContent = questions[currentQuestion].jaSentence;
-      nextBtn.style.visibility = 'visible';
+    function select(btn,ok,choices){
+      const buttons = document.querySelectorAll('.choice-btn');
+      buttons.forEach(b=>b.disabled=true);
+      if(ok){btn.classList.add('correct'); score++; playCorrect();}
+      else {btn.classList.add('wrong'); const right=[...buttons].find((b,i)=>choices[i].ok); if(right) right.classList.add('correct'); playWrong();}
+
+      // Show JP glosses for all options
+      buttons.forEach((b,i)=>{
+        if(!b.querySelector('.ja')){ const s=document.createElement('span'); s.className='ja'; s.textContent = ` ${choices[i].ja}`; b.appendChild(s); }
+      });
+
+      // Reveal sentence translation under English
+      const slot=document.getElementById('ja-slot');
+      slot.style.visibility='visible';
+      slot.textContent=questions[currentQuestion].jaSentence;
+
+      nextBtn.style.visibility='visible';
     }
 
-    nextBtn.addEventListener('click', () => {
+    nextBtn.addEventListener('click',()=>{
       currentQuestion++;
-      if(currentQuestion < questions.length){ render(); }
-      else {
-        document.getElementById('quiz').innerHTML = '';
-        progress.textContent = 'Finished';
-        finalScore.textContent = `You scored ${score} out of ${questions.length}!`;
-        finalMsg.textContent = 'Thanks for playing, and please subscribe to my YouTube channel for future updates!';
-        finish.style.display = 'flex';
-        ytBtn.style.display = 'inline-block';
-        restartBtn.style.display = 'inline-block';
-        nextBtn.style.visibility = 'hidden';
+      if(currentQuestion<questions.length){
+        render();
+      } else {
+        quizContainer.innerHTML='';
+        progress.textContent='Finished';
+        finalScore.textContent=`You scored ${score} out of ${questions.length}!`;
+        finalTime.textContent=`Time: ${formatTime(Date.now()-startTime)}`;
+        finish.style.display='flex';
+        ytBtn.style.display='inline-block';
+        restartBtn.style.display='inline-block';
+        nextBtn.style.visibility='hidden';
       }
     });
 
-    restartBtn.addEventListener('click', () => {
-      currentQuestion = 0; score = 0;
-      finish.style.display = 'none'; restartBtn.style.display = 'none'; ytBtn.style.display = 'none'; nextBtn.style.visibility = 'hidden';
-      resultContainer.textContent = ''; progress.textContent = `Question 1 of ${questions.length}`; render();
+    restartBtn.addEventListener('click',()=>{
+      currentQuestion=0; score=0; startTime=0;
+      finish.style.display='none';
+      render();
     });
 
-    if(Array.isArray(questions) && questions.length === 22){ render(); }
-    else { document.getElementById('quiz').textContent = 'Error: 問題データの読み込みに失敗しました。'; }
+    // Start
+    render();
   </script>
 </body>
 </html>
