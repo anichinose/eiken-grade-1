@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>英検１級語彙問題</title>
   <style>
+    /* Full-screen app with no page scroll */
     html, body { height: 100%; }
     body {
       font-family: Arial, sans-serif; margin:0; padding:0; overflow:hidden;
@@ -12,53 +13,76 @@
       background:url('https://images.unsplash.com/photo-1508264165352-258859e62245?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80') no-repeat center/cover fixed;
       color:#fff;
     }
-    .quiz-container {
-      margin:1.2vh 0; background:rgba(0,0,0,.78); border-radius:12px; padding:14px 18px;
-      width:min(920px,96vw); height:96vh; box-shadow:0 4px 12px rgba(0,0,0,.5);
+
+    /* EDGE-TO-EDGE container (desktop + mobile safe) */
+    .quiz-container{
+      width: 100vw;
+      height: calc(var(--vh, 1vh) * 100); /* mobile 100vh fix */
+      margin: 0;
+      background: rgba(0,0,0,.78);
+      border-radius: 0;
+      box-shadow: none;
+
+      padding: clamp(12px, 2.2vw, 20px);
+      padding-bottom: max(env(safe-area-inset-bottom), clamp(12px, 2.2vw, 20px));
+      padding-top:    max(env(safe-area-inset-top),    clamp(12px, 2.2vw, 20px));
+      padding-left:   max(env(safe-area-inset-left),   clamp(12px, 2.2vw, 20px));
+      padding-right:  max(env(safe-area-inset-right),  clamp(12px, 2.2vw, 20px));
+
       display:flex; flex-direction:column; box-sizing:border-box; position:relative;
     }
 
-    .header { position:relative; display:flex; justify-content:flex-end; align-items:center; min-height:40px; margin-bottom:6px; }
-    .header h1 { position:absolute; left:0; right:0; margin:0; text-align:center; font-size:22px; color:#facc15; letter-spacing:.03em; pointer-events:none; }
-    /* Bigger Next button */
+    /* Header: title centered; Next button top-right */
+    .header { position:relative; display:flex; justify-content:flex-end; align-items:center; min-height:44px; margin-bottom:8px; }
+    .header h1 { position:absolute; left:0; right:0; margin:0; text-align:center; font-size:24px; color:#facc15; letter-spacing:.03em; pointer-events:none; }
     #next-btn { padding:10px 16px; font-size:15px; border-radius:8px; border:none; background:#3b82f6; color:#fff; cursor:pointer; visibility:hidden; }
 
-    .muted{ color:#cbd5e1; font-size:13px; text-align:center; margin:2px 0 6px; }
+    .muted{ color:#cbd5e1; font-size:14px; text-align:center; margin:2px 0 8px; }
 
-    #quiz { flex:1; display:flex; flex-direction:column; gap:6px; }
-    .question { font-size:16px; line-height:1.45; font-weight:bold; margin:4px 0 0; }
+    /* Main area */
+    #quiz { flex:1; display:flex; flex-direction:column; gap:8px; }
+    .question { font-size:18px; line-height:1.5; font-weight:bold; margin:4px 0 0; }
 
-    .sentence-ja { min-height:64px; visibility:hidden; margin:2px 0 6px; color:#e2e8f0; font-size:14px; }
+    /* Reserved space for JP translation so choices don't shift */
+    .sentence-ja { min-height:64px; visibility:hidden; margin:4px 0 8px; color:#e2e8f0; font-size:15px; }
 
-    .choices { list-style:none; padding:0; margin:4px 0 0; display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px 12px; }
+    /* Choices */
+    .choices { list-style:none; padding:0; margin:4px 0 0; display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px 14px; }
     .choices li { margin:0; }
 
-    .choice-row { display:grid; grid-template-columns:34px 1fr; gap:8px; align-items:center; }
-    .icon-btn { width:34px; height:34px; border-radius:8px; border:1px solid rgba(255,255,255,.2); background:#0f172a; color:#e5e7eb; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:16px; }
+    .choice-row { display:grid; grid-template-columns:38px 1fr; gap:10px; align-items:center; }
+    .icon-btn { width:38px; height:38px; border-radius:8px; border:1px solid rgba(255,255,255,.2); background:#0f172a; color:#e5e7eb; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; }
     .icon-btn:hover{ background:#1f2937; }
 
-    .choice-btn { width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; background:#1f2937; color:#fff; cursor:pointer; font-size:15px; text-align:left; min-height:44px; }
+    .choice-btn { width:100%; padding:12px; border:1px solid #374151; border-radius:8px; background:#1f2937; color:#fff; cursor:pointer; font-size:16px; text-align:left; min-height:48px; }
     .choice-btn:hover { background:#374151; }
     .correct{ background:#15803d !important; border-color:#22c55e !important; }
     .wrong  { background:#b91c1c !important; border-color:#ef4444 !important; }
-    .ja { display:inline-block; margin-left:6px; color:#cbd5e1; font-size:13px; }
+    .ja { display:inline-block; margin-left:8px; color:#cbd5e1; font-size:14px; }
 
     .result{ font-size:15px; margin-top:6px; text-align:center; }
 
+    /* Centered end screen */
     .finish-wrap{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:20px; text-align:center; }
-    #final-score{ font-size:18px; font-weight:bold; }
-    #final-msg{ font-size:15px; color:#e2e8f0; max-width:680px; }
-    #yt-btn{ padding:10px 16px; font-size:14px; border-radius:8px; border:none; background:#ff0000; color:#fff; cursor:pointer; display:none; }
-    #restart-btn{ padding:10px 16px; font-size:14px; border-radius:8px; border:none; background:#3b82f6; color:#fff; cursor:pointer; display:none; }
+    #final-score{ font-size:20px; font-weight:bold; }
+    #final-msg{ font-size:16px; color:#e2e8f0; max-width:780px; }
+    #yt-btn{ padding:12px 18px; font-size:15px; border-radius:8px; border:none; background:#ff0000; color:#fff; cursor:pointer; display:none; }
+    #restart-btn{ padding:12px 18px; font-size:15px; border-radius:8px; border:none; background:#3b82f6; color:#fff; cursor:pointer; display:none; }
 
-    @media (max-width: 740px){
-      .header h1{ font-size:20px; }
-      .question{ font-size:15px; }
-      .choice-btn{ font-size:14px; padding:8px; }
-      .icon-btn{ width:30px; height:30px; font-size:14px; }
-      .sentence-ja{ min-height:56px; font-size:13px; }
+    /* Small phones: stack choices */
+    @media (max-width: 560px){
+      .choices{ grid-template-columns: 1fr; }
+      .question{ font-size:16px; }
     }
   </style>
+
+  <!-- Mobile 100vh fix (accounts for browser bars) -->
+  <script>
+    function setVH(){ document.documentElement.style.setProperty('--vh', (window.innerHeight*0.01)+'px'); }
+    window.addEventListener('resize', setVH);
+    window.addEventListener('orientationchange', setVH);
+    setVH();
+  </script>
 </head>
 <body>
   <div class="quiz-container">
@@ -71,6 +95,7 @@
     <div id="quiz"></div>
     <div class="result" id="result"></div>
 
+    <!-- End screen (centered) -->
     <div class="finish-wrap" id="finish" style="display:none">
       <div id="final-score"></div>
       <div id="final-msg"></div>
@@ -124,13 +149,36 @@
     const ytBtn = document.getElementById('yt-btn');
 
     // Sounds (gentle correct chime, elegant wrong tone)
-    let audioCtx; function getCtx(){ return audioCtx || (audioCtx = new (window.AudioContext || window.webkitAudioContext)()); }
-    function beep(freq,duration=0.14,gain=0.08,type='sine'){ const ctx=getCtx(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type=type; o.frequency.value=freq; g.gain.value=0.0001; g.connect(ctx.destination); o.connect(g); o.start(); g.gain.exponentialRampToValueAtTime(gain, ctx.currentTime+0.01); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+duration); o.stop(ctx.currentTime+duration+0.02); }
+    let audioCtx;
+    function getCtx(){ return audioCtx || (audioCtx = new (window.AudioContext || window.webkitAudioContext)()); }
+    function beep(freq,duration=0.14,gain=0.08,type='sine'){
+      const ctx=getCtx(); const o=ctx.createOscillator(); const g=ctx.createGain();
+      o.type=type; o.frequency.value=freq; g.gain.value=0.0001; g.connect(ctx.destination); o.connect(g);
+      o.start(); g.gain.exponentialRampToValueAtTime(gain, ctx.currentTime+0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+duration);
+      o.stop(ctx.currentTime+duration+0.02);
+    }
     function playCorrect(){ beep(523.25,0.12); setTimeout(()=>beep(659.25,0.12),110); setTimeout(()=>beep(783.99,0.18),220); }
-    function playWrong(){ const ctx=getCtx(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.type='triangle'; o.frequency.setValueAtTime(240,ctx.currentTime); o.frequency.linearRampToValueAtTime(170,ctx.currentTime+0.28); g.gain.setValueAtTime(0.15,ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.3); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.34); }
+    function playWrong(){
+      const ctx=getCtx(); const o=ctx.createOscillator(); const g=ctx.createGain();
+      o.type='triangle'; o.frequency.setValueAtTime(240,ctx.currentTime);
+      o.frequency.linearRampToValueAtTime(170,ctx.currentTime+0.28);
+      g.gain.setValueAtTime(0.15,ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.3);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(); o.stop(ctx.currentTime+0.34);
+    }
 
-    // TTS for pronunciation
-    function speak(text){ if(!('speechSynthesis' in window)) return; window.speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); const v=window.speechSynthesis.getVoices(); const en=v.find(x=>/^en(-|_|$)/i.test(x.lang))||v[0]; if(en) u.voice=en; u.rate=0.95; u.pitch=1; window.speechSynthesis.speak(u); }
+    // TTS for pronunciation (speaker buttons)
+    function speak(text){
+      if(!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      const v=window.speechSynthesis.getVoices();
+      const en=v.find(x=>/^en(-|_|$)/i.test(x.lang))||v[0];
+      if(en) u.voice=en; u.rate=0.95; u.pitch=1;
+      window.speechSynthesis.speak(u);
+    }
     if ('speechSynthesis' in window) { window.speechSynthesis.getVoices(); }
 
     function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } }
@@ -165,7 +213,6 @@
       });
       quizContainer.appendChild(ul);
 
-      // Reset UI bits
       nextBtn.style.visibility = 'hidden';
       finish.style.display = 'none';
       restartBtn.style.display = 'none';
@@ -179,8 +226,10 @@
       if(ok){ btn.classList.add('correct'); score++; playCorrect(); }
       else { btn.classList.add('wrong'); const right = [...buttons].find((b,i)=>choices[i].ok); if(right) right.classList.add('correct'); playWrong(); }
 
-      // Show JA glosses for all options (no dash prefix)
-      buttons.forEach((b,i)=>{ if(!b.querySelector('.ja')){ const s=document.createElement('span'); s.className='ja'; s.textContent = ` ${choices[i].ja}`; b.appendChild(s);} });
+      // Show JA glosses for all options
+      buttons.forEach((b,i)=>{
+        if(!b.querySelector('.ja')){ const s=document.createElement('span'); s.className='ja'; s.textContent = ` ${choices[i].ja}`; b.appendChild(s); }
+      });
 
       // Reveal sentence translation in reserved slot
       const slot = document.getElementById('ja-slot');
