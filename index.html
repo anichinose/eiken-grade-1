@@ -16,7 +16,6 @@
     .quiz-container{
       width: 100vw;
       height: calc(var(--vh, 1vh) * 100);
-      margin: 0;
       background: rgba(0,0,0,.78);
       padding: clamp(12px, 2.2vw, 20px);
       display:flex; flex-direction:column; box-sizing:border-box; position:relative;
@@ -33,9 +32,26 @@
 
     .choices { list-style:none; padding:0; margin:4px 0 0; display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px 14px; }
     .choice-row { display:grid; grid-template-columns:38px 1fr; gap:10px; align-items:center; }
-    .icon-btn { width:38px; height:38px; border-radius:8px; border:1px solid rgba(255,255,255,.2); background:#0f172a; color:#e5e7eb; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; }
-    .choice-btn { width:100%; padding:12px; border:1px solid #374151; border-radius:8px; background:#1f2937; color:#fff; cursor:pointer; font-size:16px; text-align:left; min-height:48px; }
+
+    .icon-btn {
+      width:38px; height:38px;
+      border-radius:8px;
+      border:1px solid #facc15;   /* yellow border */
+      background:#0f172a; color:#e5e7eb;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      font-size:18px;
+    }
+    .icon-btn:hover{ background:#1f2937; }
+
+    .choice-btn {
+      width:100%; padding:12px;
+      border:1px solid #facc15;   /* yellow border */
+      border-radius:8px;
+      background:#1f2937; color:#fff;
+      cursor:pointer; font-size:16px; text-align:left; min-height:48px;
+    }
     .choice-btn:hover { background:#374151; }
+
     .correct{ background:#15803d !important; border-color:#22c55e !important; }
     .wrong  { background:#b91c1c !important; border-color:#ef4444 !important; }
     .ja { display:inline-block; margin-left:8px; color:#cbd5e1; font-size:14px; }
